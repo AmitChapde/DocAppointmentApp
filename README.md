@@ -4,8 +4,8 @@ This repository contains a monorepo for a simple doctor booking application: an 
 
 **Contents**
 
-- **backend/** — Node.js + Express API, Prisma schema and migrations
-- **doctor-booking-frontend/** — React + Vite frontend
+- **server/** — Node.js + Express API, Prisma schema and migrations
+- **client/** — React + Vite frontend
 
 ---
 
@@ -17,7 +17,7 @@ This repository contains a monorepo for a simple doctor booking application: an 
 
 ```
 repo-root/
-├─ backend/
+├─ server/
 │  ├─ prisma/
 │  │  ├─ schema.prisma
 │  │  └─ migrations/
@@ -26,7 +26,7 @@ repo-root/
 │  │  └─ controllers/...
 │  ├─ package.json
 │  └─ .env
-├─ doctor-booking-frontend/
+├─ client/
 │  ├─ src/
 │  ├─ index.html
 │  ├─ vite.config.ts
@@ -35,30 +35,30 @@ repo-root/
 └─ README.md
 ```
 
-Backend: Node.js (Express) + Prisma + PostgreSQL
+server: Node.js (Express) + Prisma + PostgreSQL
 
-Frontend: React + Vite
+client: React + Vite
 
 1.2 Dependencies (high level)
 
-- Backend: Node.js 18+ (recommended 20), express, cors, helmet,morgan, prisma, @prisma/client, dotenv
-- Frontend: Vite, React, (axios or fetch), Material UI
+- server: Node.js 18+ (recommended 20), express, cors, helmet,morgan, prisma, @prisma/client, dotenv
+- client: Vite, React, (axios or fetch), Material UI
 
   1.3 Installation Steps (Local)
 
 Clone and install
 
-Backend
+server
 
 ```
-cd backend
+cd server
 npm ci
 ```
 
-Frontend
+client
 
 ```
-cd doctor-booking-frontend
+cd client
 npm ci
 ```
 
@@ -67,7 +67,7 @@ Prepare env files (examples below)
 Initialize database (local)
 
 ```
-cd backend
+cd server
 npx prisma generate
 npx prisma migrate dev --name init
 ```
@@ -75,10 +75,10 @@ npx prisma migrate dev --name init
 Run locally
 
 ```
-# Backend (dev)
+# server (dev)
 npm run dev
-# Frontend (Vite)
-cd doctor-booking-frontend && npm run dev
+# client (Vite)
+cd client && npm run dev
 ```
 
 2. Environment Variables
@@ -87,13 +87,13 @@ Below are the variables used by this project.
 
 Example variables
 
-- `DATABASE_URL` (Backend) — PostgreSQL connection string
+- `DATABASE_URL` (server) — PostgreSQL connection string
 - `NODE_ENV` (Both) — development|production
-- `PORT` (Backend) — Railway sets this automatically
-- `BOOKING_HOLD_SECONDS`(Backend) - Booking simulation time
-- `VITE_API_URL` (Frontend) — deployed backend base URL (must include protocol)
+- `PORT` (server) — PORT 
+- `BOOKING_HOLD_SECONDS`(server) - Booking simulation time
+- `VITE_API_URL` (client) — deployed server base URL (must include protocol)
 
-Local backend `.env` (backend/.env)
+Local server `.env` (server/.env)
 
 ```
 DATABASE_URL=postgres://user:pass@localhost:5432/doctor_app
@@ -101,7 +101,7 @@ JWT_SECRET=replace-with-secure-random
 NODE_ENV=development
 ```
 
-Local frontend `.env` (doctor-booking-frontend/.env)
+Local client `.env` (client/.env)
 
 ```
 VITE_API_URL=http://localhost:3000
@@ -109,22 +109,20 @@ VITE_API_URL=http://localhost:3000
 
 2.2 How they were configured on hosting
 
-Railway (Backend)
+Render
 
-Open your Railway project → Service (backend) → Variables and add `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV`. Railway provides `PORT` automatically; make sure your server reads `process.env.PORT`.
+Open your Render project → Service (server) →Enviornment Variables and add `DATABASE_URL`, `JWT_SECRET`, `NODE_ENV`. make sure your server reads `process.env.PORT`.
 
-Vercel/Netlify (Frontend)
+Vercel (client)
 
-Project settings → Environment Variables → add `VITE_API_URL` with the backend public URL (include `https://`). For Vite, only variables prefixed with `VITE_` are exposed to the browser.
+Project settings → Environment Variables → add `VITE_API_URL` with the server public URL (include `https://`). For Vite, only variables prefixed with `VITE_` are exposed to the browser.
 
 3. Backend Deployment
 
-Platform: Railway
-
-Railway service setup (recommended)
+Platform: Render
 
 - New → GitHub Repo → select repository/branch
-- Set Root Directory to `backend`
+- Set Root Directory to `server`
 - Build command:
 
 ```
@@ -142,52 +140,51 @@ Variables: set `DATABASE_URL`, , `NODE_ENV`
 Notes:
 
 - Ensure the server listens on `process.env.PORT`.
-- To use Railway Postgres: add a PostgreSQL plugin and copy the connection string into `DATABASE_URL`.
 - If using an external DB (Neon/Supabase/RDS), use that connection string.
 
-Testing backend after deployment
+Testing server after deployment
 
 ```
-curl -i https://<your-backend-url>/api/health
+curl -i https://<your-server-url>/api/health
 ```
 
 Also use Postman with a collection variable `base_url` pointing to your deployed URL and test endpoints ( `/api/doctors`, `/api/appointments`).
 
 4. Frontend Deployment
 
-Platform: Vercel (recommended) or Netlify
+Platform: Vercel 
 
 Vercel steps
 
-- Import Project → select `doctor-booking-frontend` as root
+- Import Project → select `client` as root
 - Install: `npm ci`
 - Build: `npm run build`
 - Output Directory: `dist`
-- Env Var: `VITE_API_URL` = `https://<your-backend-url>`
+- Env Var: `VITE_API_URL` = `https://<your-server-url>`
 - Deploy and verify the public URL loads
 
 Updating API base URL
 
-Frontend uses `import.meta.env.VITE_API_URL` (ensure it includes `https://`). Example usage:
+client uses `import.meta.env.VITE_API_URL` (ensure it includes `https://`). Example usage:
 
 ```js
 const base = import.meta.env.VITE_API_URL;
 const res = await fetch(`${base}/api/appointments`);
 ```
 
-5. Connecting Frontend & Backend
+5. Connecting client & server
 
-The frontend calls REST endpoints hosted at `VITE_API_URL`.
+The client calls REST endpoints hosted at `VITE_API_URL`.
 
 CORS example (Express):
 
 ```js
 import cors from "cors";
-const allowed = ["http://localhost:5173", "https://your-frontend.vercel.app"];
+const allowed = ["http://localhost:5173", "https://your-client.vercel.app"];
 app.use(cors({ origin: allowed, credentials: true }));
 ```
 
-Verify live API calls by opening the deployed frontend, using DevTools Network tab, and confirming requests go to your backend and return 2xx/4xx codes.
+Verify live API calls by opening the deployed client, using DevTools Network tab, and confirming requests go to your server and return 2xx/4xx codes.
 
 6. Validation
 
@@ -197,10 +194,10 @@ Functional checks in production
 - Appointments: book, list, cancel
 - Error handling and 401/403 flows
 
-Deployed URLs 
+Deployed URLs
 
-- Backend API: https://joyful-dream-production.up.railway.app
-- Frontend: https://doctor-appointment-application-kv8d.vercel.app/
+- server API: https://docappointmentapp-wqgg.onrender.com
+- client:https://doc-appointment-q86hexjwg-amit-chapdes-projects.vercel.app
 
 ---
 
@@ -214,13 +211,13 @@ Simplify discovering doctors and booking appointments online. End users: patient
 
 Tech stack
 
-- Frontend: React + Vite
+- client: React + Vite
 - Backend: Node.js + Express
 - Database: PostgreSQL
 - ORM: Prisma
-- Hosting: Railway (backend), Vercel (frontend)
+- Hosting: Render(server), Vercel (client)
 
-High-level: Frontend calls REST APIs, Express uses Prisma for DB.
+High-level: client calls REST APIs, Express uses Prisma for DB.
 
 3. Feature-by-Feature Demo (summary)
 
@@ -323,7 +320,7 @@ High-level: Frontend calls REST APIs, Express uses Prisma for DB.
 - Request body/params: none
 - Auth: No
 
-Bonus features 
+Bonus features
 
 - Slot generation to avoid overlaps
 - Search/filter by specialization or availability
@@ -343,7 +340,7 @@ Approach
 
 Common issues & fixes
 
-- CORS blocked: add frontend origin to backend CORS
+- CORS blocked: add client origin to backend CORS
 - DB errors: validate `DATABASE_URL` and migrations
 - Wrong API URL: set `VITE_API_URL` to the production backend URL (include `https://`)
 
@@ -354,7 +351,7 @@ Appendix: Useful Commands
 Backend
 
 ```
-cd backend && npm ci
+cd server && npm ci
 npx prisma generate
 npx prisma migrate dev --name init
 npx prisma studio
@@ -362,10 +359,10 @@ npm run dev
 npm start
 ```
 
-Frontend
+client
 
 ```
-cd doctor-booking-frontend
+cd client
 npm ci
 npm run dev
 npm run build
