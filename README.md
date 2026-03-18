@@ -197,7 +197,7 @@ Functional checks in production
 Deployed URLs
 
 - server API: https://docappointmentapp-wqgg.onrender.com
-- client:https://doc-appointment-q86hexjwg-amit-chapdes-projects.vercel.app
+- client:[https://doc-appointment-q86hexjwg-amit-chapdes-projects.vercel.app](https://doc-appointment-app-pi.vercel.app/slots)
 
 ---
 
